@@ -1,0 +1,198 @@
+# dendriforma: Tree Form Exploration Sandbox
+
+## Vision
+
+An artistic tool for exploring the morphospace of possible tree forms—grounded in botanical science but free to transcend it. Real-time interactive exploration that outputs images. The goal is to distill the algorithm of a tree into its essence and let users explore varieties both familiar and alien.
+
+## Aesthetic Direction
+
+**From CLAUDE.md:** Minimalist green wireframe trees with an early CAD/terminal aesthetic. The visual language should feel like looking at tree structure through the lens of a 1980s SGI workstation—precise, geometric, but capturing something essential about tree-ness.
+
+## Core Algorithms (from research)
+
+### Primary: Space Colonization
+The most promising approach for organic, naturalistic forms. Trees emerge from competition for space rather than top-down recursion.
+
+**Core mechanic:** Thousands of attraction points fill a crown volume. Branch tips grow toward nearby points, which disappear when colonized. Three parameters control everything:
+- **Influence radius (d_i)**: How far points attract growth (4-6× segment length)
+- **Kill distance (d_k)**: When points get consumed (1-2× segment length)  
+- **Segment length (D)**: Resolution of branching
+
+This naturally prevents branch intersection and creates the clustered-yet-sparse distribution of real trees.
+
+### Secondary: Weber-Penn Parametric (for fast preview)
+During slider manipulation, use deterministic parametric generation (10-50ms) for immediate feedback. Switch to space colonization on mouse release for final form.
+
+### Essential: Pipe Model for Thickness
+Da Vinci's rule: `d_parent^α = d_child1^α + d_child2^α`
+- **α = 2.0**: Classic area preservation
+- **α ≈ 2.5**: Wind resistance optimization
+- **α = 3.0**: Murray's law (fluid transport)
+
+Real trees cluster at α = 2.0-2.5. This single rule makes trees look like trees.
+
+## Mathematical Relationships
+
+| Principle | Formula/Value | Controls |
+|-----------|---------------|----------|
+| Branching angle | 30-60° conifers, 45-90° broadleaf | Species character |
+| Phyllotaxis | 137.5° (golden angle) | Spiral arrangement |
+| Length decay | 0.7-0.9 per generation | Proportional shrinking |
+| Height-diameter | H = a × DBH^0.67 | Overall proportions |
+| Fractal dimension | D ≈ 1.4-2.0 | Crown density/bushiness |
+
+## Parameter Space (Minimal Artistic Set)
+
+```typescript
+interface TreeParameters {
+  // Global
+  shape: 'conical' | 'spherical' | 'hemispherical' | 'umbrella' | 'columnar';
+  scale: number;
+  levels: number; // 3-5 typically
+  
+  // Branching
+  apicalDominance: number;  // 0-1, how much main axis suppresses laterals
+  branchAngle: number;      // base angle from parent
+  branchAngleVariance: number;
+  phyllotaxis: number;      // rotation around parent (137.5° default)
+  
+  // Proportions
+  lengthRatio: number;      // child/parent length
+  lengthVariance: number;
+  taperExponent: number;    // α in pipe model (2.0-2.5)
+  
+  // Character
+  curvature: number;        // branch bend (-1 to 1)
+  gnarliness: number;       // accumulated twist/irregularity
+  
+  // Space colonization specific
+  crownDensity: number;     // attraction point count
+  influenceRadius: number;
+  killDistance: number;
+}
+```
+
+## Architectural Presets (Hallé's Models)
+
+Starting points for exploration:
+
+- **Rauh** (oak/maple): Strong central axis, branches repeat trunk pattern
+- **Massart** (fir/spruce): Tiered whorls of horizontal branches
+- **Troll** (beech/elm): Horizontal branches curve upward over time
+- **Leeuwenberg** (dogwood): Sympodial forking, no dominant leader
+
+These become presets; interpolating between them creates hybrid/alien forms.
+
+## Technical Architecture
+
+**Preserve from existing CLAUDE.md:**
+```
+UI (parameters.ts)
+    ↓
+Application Logic (main.ts) - state management, animation loop
+    ↓
+┌─────────┬──────────┬────────────┐
+│ Growth  │ Geometry │ Rendering  │
+└─────────┴──────────┴────────────┘
+    ↓
+Core (skeleton, vector, delta)
+```
+
+**Data structures to keep:**
+- Immutable `Skeleton` with `nodes: Map<id, Node>`, `forks: Array<Fork>`, `rootId`
+- Delta system for incremental updates
+- Pure function operations
+
+**New additions:**
+- `AttractionCloud`: Point set defining crown volume
+- `GrowthTip`: Position, direction, associated attraction points
+- `SpaceColonizer`: Iterative algorithm runner
+- Hybrid generator that switches between parametric preview and colonization final
+
+## Growth Model Shift
+
+**Old mental model (recursive, top-down):**
+> "I am a branch, I will now spawn children at these angles."
+
+**New mental model (emergent, bottom-up):**
+> Each growth tip follows simple local rules—seek attractors, respect thickness constraints, add noise. The tree form emerges.
+
+The primitive is not the branch but the **growth tip**:
+- Has position and direction
+- Takes a step toward averaged attractor direction
+- Maybe spawns lateral tip (branching)
+- Maybe dies (termination when no attractors in range)
+- Gets influenced by forces (light, gravity, randomness)
+
+The "tree" is the accumulated trail of all tips that ever existed.
+
+## Interaction Design
+
+**Real-time feedback loop:**
+1. User adjusts slider → parametric preview regenerates (10-50ms)
+2. User releases slider → space colonization runs (50-200ms)
+3. Final form renders with pipe-model thickness
+
+**Key interactions:**
+- Sliders for all parameters with sensible ranges
+- Preset buttons for architectural models
+- "Randomize within envelope" for variations
+- Crown shape editor (draw silhouette → points fill it)
+- Export: PNG, SVG, maybe OBJ for 3D
+
+## What Makes It Feel Right
+
+From research on perceptual violations:
+- **Reiteration**: Self-similarity at multiple scales (essential)
+- **Area-preserving tapering**: Pipe model (essential)
+- **Organic variation**: Every parameter needs ±variance
+- **No structural artifacts**: No perfect symmetry, no branch intersections
+
+The uncanny valley is in the middle—either stay clearly stylized (your CAD aesthetic) or push to full naturalism. Your wireframe approach is on the stylized side, which is good.
+
+## Implementation Phases
+
+### Phase 1: Core Space Colonization
+- Attraction point cloud generation within crown shapes
+- Basic growth tip mechanics
+- Skeleton accumulation
+- Wireframe rendering (existing)
+
+### Phase 2: Pipe Model Integration  
+- Recursive child counting
+- Thickness computation with α parameter
+- Tapered line rendering or cylinder geometry
+
+### Phase 3: Parameter UI
+- Slider panel for core parameters
+- Architectural model presets
+- Real-time preview during drag
+
+### Phase 4: Hybrid Generation
+- Fast parametric preview during interaction
+- Space colonization on release
+- Smooth transition between modes
+
+### Phase 5: Polish & Export
+- Crown shape editor
+- Randomization controls
+- Image export (PNG/SVG)
+- Optional: animation of growth process
+
+## Open Questions
+
+1. **2D or 3D?** The existing project is 3D (Three.js, orthogonal camera). Keep 3D with wireframe, or explore 2D projections?
+
+2. **Growth animation?** Show the colonization process step-by-step, or just final form?
+
+3. **Leaf/foliage?** Start with pure skeleton structure, add leaves later?
+
+4. **Multiple trees?** Forest view, or single tree focus?
+
+## References
+
+- Runions et al. (2007) - Space Colonization Algorithm
+- Weber & Penn (1995) - Creation and Rendering of Realistic Trees  
+- Hallé, Oldeman & Tomlinson - Architectural models
+- Shinozaki et al. (1964) - Pipe Model Theory
+- The Algorithmic Beauty of Plants (Prusinkiewicz & Lindenmayer)
