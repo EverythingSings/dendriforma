@@ -6,9 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Dendriforma is an artistic tool for exploring the morphospace of possible tree forms. It generates procedural 3D trees grounded in botanical science but free to transcend it—producing both faithful oaks and alien vegetation through parameter manipulation.
 
-**Stack**: TypeScript, Three.js (3D rendering with orthographic camera)
+**Stack**: TypeScript, Effect.ts, Three.js (3D rendering with orthographic camera), Playwright, Vitest
 
 **Aesthetic**: Minimalist green wireframe with early CAD/terminal feel—like viewing tree structure through a 1980s SGI workstation.
+
+## Development Practices
+
+**Test-Driven Development**: Write tests first. All new functionality requires tests before implementation.
+
+**Visual Verification**: Use Playwright screenshots to verify rendering changes. Compare against baseline images for regression testing.
+
+**Functional Programming**: Use Effect.ts for typed functional programming—explicit error handling, composable pipelines, immutable data. No classes, no mutation, no exceptions for control flow.
+
+**Documentation**: Keep code comments and documentation current. Update docs alongside code changes.
 
 ## Core Algorithms
 
@@ -70,6 +80,15 @@ Core (skeleton, vector, delta)
 - **Leeuwenberg** (dogwood): Sympodial forking, no dominant leader
 
 Interpolating between models creates hybrid/alien forms.
+
+## Commands
+
+```bash
+npm run dev          # Start dev server
+npm run test         # Run unit tests (Vitest)
+npm run test:visual  # Run Playwright visual regression tests
+npm run build        # Production build
+```
 
 ## Implementation Phases
 
